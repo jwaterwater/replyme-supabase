@@ -1,0 +1,72 @@
+<html>
+    <head>
+        <title>Test HTML</title>
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    </head>
+    <body id="app">
+        <button @click="register">登录</button>
+        <h1>Hello, World!</h1>
+        <p>This is a test HTML file.</p>
+
+        <button @click="uploadImage">上传图片</button>
+    </body>
+    <script type="module">
+        const { createApp } = Vue;
+        const { createClient } = supabase;
+        const supabaseUrl = 'http://localhost:8000';
+        const app = createClient(supabaseUrl, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzYwMTEyMDAwLCJleHAiOjE5MTc4Nzg0MDB9.j8QMQ2tVDvWpDPDH9J_VFL2oA8PP8rszMhmWg7aN12E'); 
+
+
+        createApp({
+            data() {
+                return {
+                    message: 'Hello from Vue!'
+                }
+            },
+            methods: {
+                async register() {
+                    //使用email注册
+                    console.log('Supabase client created:', app);
+                    const { data, error } = await app.auth.signInWithPassword({
+                        email: 'hai@qq.com',
+                        password: '123456',
+                    })
+                    //保存登录jwt
+                    localStorage.setItem('supabase.auth.token', data.session.access_token);
+                    console.log('Sign-up response:', { data, error });
+                },
+                async uploadImage() {
+                    // 获取用户
+                    const {
+                    data: { user }
+                    } = await app.auth.getUser()
+
+                    console.log('Current user:', user);
+                    if (!user) {
+                        alert('请先登录');
+                        return;
+                    }
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*';
+                    fileInput.onchange = async (event) => {
+                        const file = event.target.files[0];
+                        if (file) {
+                            const fileName = `${Date.now()}_${file.name}`;
+                            const { data, error } = await app.storage
+                                .from('haiwe7')
+                                .upload(fileName, file);
+                            if (error) {
+                                console.error('Error uploading file:', error);
+                            } else {
+                                console.log('File uploaded successfully:', data);
+                            }
+                        }
+                    };
+                    fileInput.click();
+                }
+            }
+        }).mount('#app');
+    </script>
+</html>
