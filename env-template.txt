@@ -1,0 +1,115 @@
+# =============================================================================
+# Supabase Environment Variables Template
+# =============================================================================
+# Copy this file to .env and update the values according to your setup
+
+# -----------------------------------------------------------------------------
+# PostgreSQL Database Configuration
+# -----------------------------------------------------------------------------
+POSTGRES_HOST=your-postgres-host.com
+POSTGRES_PORT=5432
+POSTGRES_DB=postgres
+POSTGRES_DB_NAME=supabase_admin
+POSTGRES_PASSWORD=your-postgres-password
+
+# -----------------------------------------------------------------------------
+# Supabase Keys & Secrets
+# -----------------------------------------------------------------------------
+# Generate these using: npx supabase gen keys
+ANON_KEY=your-anon-key-here
+SERVICE_ROLE_KEY=your-service-role-key-here
+JWT_SECRET=your-jwt-secret-here
+PG_META_CRYPTO_KEY=your-pg-meta-crypto-key-here
+
+# -----------------------------------------------------------------------------
+# API Configuration
+# -----------------------------------------------------------------------------
+API_EXTERNAL_URL=http://localhost:8000
+SUPABASE_PUBLIC_URL=http://localhost:8000
+KONG_HTTP_PORT=8000
+KONG_HTTPS_PORT=8443
+
+# -----------------------------------------------------------------------------
+# Authentication Configuration
+# -----------------------------------------------------------------------------
+SITE_URL=http://localhost:3000
+ADDITIONAL_REDIRECT_URLS=
+DISABLE_SIGNUP=false
+ENABLE_EMAIL_SIGNUP=true
+ENABLE_EMAIL_AUTOCONFIRM=false
+ENABLE_ANONYMOUS_USERS=false
+ENABLE_PHONE_SIGNUP=false
+ENABLE_PHONE_AUTOCONFIRM=false
+JWT_EXPIRY=3600
+
+# -----------------------------------------------------------------------------
+# SMTP Configuration (Optional)
+# -----------------------------------------------------------------------------
+SMTP_ADMIN_EMAIL=admin@example.com
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_SENDER_NAME=Supabase
+
+# -----------------------------------------------------------------------------
+# Email URL Paths
+# -----------------------------------------------------------------------------
+MAILER_URLPATHS_INVITE=/auth/v1/verify
+MAILER_URLPATHS_CONFIRMATION=/auth/v1/verify
+MAILER_URLPATHS_RECOVERY=/auth/v1/verify
+MAILER_URLPATHS_EMAIL_CHANGE=/auth/v1/verify
+
+# -----------------------------------------------------------------------------
+# Studio Configuration
+# -----------------------------------------------------------------------------
+STUDIO_DEFAULT_ORGANIZATION=Default Organization
+STUDIO_DEFAULT_PROJECT=Default Project
+OPENAI_API_KEY=
+
+# -----------------------------------------------------------------------------
+# Dashboard Configuration
+# -----------------------------------------------------------------------------
+DASHBOARD_USERNAME=admin
+DASHBOARD_PASSWORD=admin
+
+# -----------------------------------------------------------------------------
+# PostgREST Configuration
+# -----------------------------------------------------------------------------
+PGRST_DB_SCHEMAS=public,storage,graphql_public
+
+# -----------------------------------------------------------------------------
+# Functions Configuration
+# -----------------------------------------------------------------------------
+FUNCTIONS_VERIFY_JWT=false
+
+# -----------------------------------------------------------------------------
+# Analytics & Logging
+# -----------------------------------------------------------------------------
+LOGFLARE_PRIVATE_ACCESS_TOKEN=
+LOGFLARE_PUBLIC_ACCESS_TOKEN=
+
+# -----------------------------------------------------------------------------
+# Docker Configuration
+# -----------------------------------------------------------------------------
+DOCKER_SOCKET_LOCATION=/var/run/docker.sock
+
+# -----------------------------------------------------------------------------
+# Connection Pool Configuration
+# -----------------------------------------------------------------------------
+POOLER_PROXY_PORT_TRANSACTION=6543
+POOLER_TENANT_ID=default
+POOLER_DEFAULT_POOL_SIZE=15
+POOLER_MAX_CLIENT_CONN=100
+POOLER_DB_POOL_SIZE=15
+
+# -----------------------------------------------------------------------------
+# Additional Secrets
+# -----------------------------------------------------------------------------
+SECRET_KEY_BASE=your-secret-key-base-here
+VAULT_ENC_KEY=your-vault-enc-key-here
+
+# -----------------------------------------------------------------------------
+# Image Processing (if needed)
+# -----------------------------------------------------------------------------
+IMGPROXY_ENABLE_WEBP_DETECTION=true

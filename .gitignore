@@ -1,0 +1,30 @@
+# Supabase Docker Volumes - 需要忽略的文件和目录
+
+# PostgreSQL 数据库数据目录 - 包含所有数据库的实际数据
+volumes/db/data/
+
+# 存储服务的数据目录 - 用户上传的文件
+volumes/storage/
+
+# 其他运行时生成的数据
+*.log
+*.tmp
+
+# 环境变量文件（如果存在）
+.env.local
+.env
+.env.production
+
+# 操作系统生成的文件
+.DS_Store
+Thumbs.db
+
+# 编辑器配置文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 临时文件
+*.bak
+*.backup
