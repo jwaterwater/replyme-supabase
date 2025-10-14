@@ -5,7 +5,8 @@
         <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     </head>
     <body id="app">
-        <button @click="register">登录</button>
+        <button @click="register">注册</button>
+        <button @click="login">登录</button>
         <h1>Hello, World!</h1>
         <p>This is a test HTML file.</p>
 
@@ -17,6 +18,7 @@
         const supabaseUrl = 'http://localhost:8000';
         const app = createClient(supabaseUrl, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzYwMTEyMDAwLCJleHAiOjE5MTc4Nzg0MDB9.j8QMQ2tVDvWpDPDH9J_VFL2oA8PP8rszMhmWg7aN12E'); 
 
+        window.app = app;
 
         createApp({
             data() {
@@ -26,6 +28,11 @@
             },
             methods: {
                 async register() {
+                    const { error } = await app.auth.signInWithOtp({
+                        email: '1052256521@qq.com',
+                    });
+                },
+                async login() {
                     //使用email注册
                     console.log('Supabase client created:', app);
                     const { data, error } = await app.auth.signInWithPassword({
@@ -54,8 +61,9 @@
                         const file = event.target.files[0];
                         if (file) {
                             const fileName = `${Date.now()}_${file.name}`;
+                            console.log('Uploading file:', fileName,file);
                             const { data, error } = await app.storage
-                                .from('haiwe7')
+                                .from('test')
                                 .upload(fileName, file);
                             if (error) {
                                 console.error('Error uploading file:', error);
