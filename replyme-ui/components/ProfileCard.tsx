@@ -1,0 +1,54 @@
+import { Button, ButtonText } from '@/components/ui/index';
+import { Image, StyleSheet, Text, View } from 'react-native';
+
+type ProfileCardProps = {
+  imageUrl: string;
+  name: string;
+  bio: string;
+};
+
+export default function ProfileCard({ imageUrl, name, bio }: ProfileCardProps) {
+  return (
+    <View style={styles.card}>
+      <Image source={{ uri: imageUrl }} style={styles.image} />
+      <View style={styles.info}>
+        <Text style={styles.name}>{name}</Text>
+        <Text style={styles.bio}>{bio}</Text>
+      </View>
+      <Button action="primary" style={{ margin: 15 }} size='md'>
+        <ButtonText>开始聊天</ButtonText>
+      </Button>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    width: 300,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  image: {
+    width: '100%',
+    height: 300,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  info: {
+    padding: 15,
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  bio: {
+    fontSize: 16,
+    color: '#666',
+  },
+});
