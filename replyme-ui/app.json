@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "ui",
-    "slug": "ui",
+    "name": "replyme",
+    "slug": "replyme",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "ui",
+    "scheme": "replyme",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
