@@ -1,5 +1,7 @@
+import { useCallback } from 'react';
 import { Button, ButtonText } from '@/components/ui/index';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 type ProfileCardProps = {
   imageUrl: string;
@@ -8,6 +10,11 @@ type ProfileCardProps = {
 };
 
 export default function ProfileCard({ imageUrl, name, bio }: ProfileCardProps) {
+  const router = useRouter();
+  const handleChatPress = useCallback(() => {
+    router.push('/chat');
+  }, [router]);
+
   return (
     <View style={styles.card}>
       <Image source={{ uri: imageUrl }} style={styles.image} />
@@ -15,8 +22,8 @@ export default function ProfileCard({ imageUrl, name, bio }: ProfileCardProps) {
         <Text style={styles.name}>{name}</Text>
         <Text style={styles.bio}>{bio}</Text>
       </View>
-      <Button action="primary" style={{ margin: 15 }} size='md'>
-        <ButtonText>开始聊天</ButtonText>
+      <Button action="primary" style={{ margin: 15 }} size='md' onPress={handleChatPress}>
+        <ButtonText onPress={handleChatPress}>开始聊天</ButtonText>
       </Button>
     </View>
   );

@@ -3,7 +3,7 @@ import { Center } from '@/components/ui/center';
 import { Divider } from '@/components/ui/divider';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
-import ProfileCard from '../../../components/ProfileCard';
+import ProfileCard from '@/components/tabs/index/ProfileCard';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const DUMMY_DATA = [
@@ -31,12 +31,6 @@ const DUMMY_DATA = [
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
-        <Button action='primary' >123</Button>
-        <Center>
-      <Text className="font-semibold">Easy</Text>
-      <Divider className="my-0.5" />
-      <Text className="font-semibold">Difficult</Text>
-    </Center>
       <Carousel
         loop={false}
         width={SCREEN_WIDTH}
