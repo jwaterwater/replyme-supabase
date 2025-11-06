@@ -1,10 +1,10 @@
-
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Keyboard } from 'react-native';
 import type { ScrollView as RNScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardControllerView, KeyboardStickyView, useKeyboardAnimation } from 'react-native-keyboard-controller';
 
 import { SafeAreaView } from '@/components/ui/safe-area-view';
-import { KeyboardAvoidingView } from '@/components/ui/keyboard-avoiding-view';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
@@ -13,7 +13,6 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { Input, InputField } from '@/components/ui/input';
 import { ScrollView } from '@/components/ui/scroll-view';
 import { Avatar, AvatarFallbackText } from '@/components/ui/avatar';
-
 type Message = {
   id: string;
   sender: 'me' | 'other';
@@ -53,11 +52,20 @@ export default function ChatScreen() {
   ]);
 
   const scrollRef = useRef<RNScrollView>(null);
-  const keyboardVerticalOffset = Platform.select({
-    ios: 80,
-    android: 24,
-    default: 0,
-  });
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, 12);
+  const inputBarHeight = 72;
+  const { height: keyboardHeight } = useKeyboardAnimation();
+
+  const bottomSpacerStyle = useMemo(
+    () => ({
+      height: Animated.add(
+        Animated.multiply(keyboardHeight, -1),
+        bottomInset + inputBarHeight
+      ),
+    }),
+    [keyboardHeight, bottomInset, inputBarHeight]
+  );
 
   const handleSend = useCallback(() => {
     const content = draft.trim();
@@ -85,6 +93,10 @@ export default function ChatScreen() {
     setDraft('');
   }, [draft]);
 
+  const handleKeyboardShow = useCallback(() => {
+    scrollRef.current?.scrollToEnd({ animated: true });
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       scrollRef.current?.scrollToEnd({ animated: true });
@@ -95,13 +107,17 @@ export default function ChatScreen() {
     };
   }, [messages]);
 
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', handleKeyboardShow);
+
+    return () => {
+      showSub.remove();
+    };
+  }, [handleKeyboardShow]);
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={keyboardVerticalOffset}
-      >
+      <KeyboardControllerView style={{ flex: 1 }}>
         <Box className="flex-1 bg-background-0">
           <Box className="border-b border-outline-200 bg-background-0 px-5 py-4">
             <HStack className="items-center justify-between">
@@ -130,7 +146,7 @@ export default function ChatScreen() {
               style={{ flex: 1 }}
               contentContainerStyle={{
                 paddingHorizontal: 20,
-                paddingVertical: 24,
+                paddingTop: 24,
               }}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="interactive"
@@ -179,10 +195,16 @@ export default function ChatScreen() {
                   );
                 })}
               </VStack>
+              <Animated.View style={bottomSpacerStyle} />
             </ScrollView>
           </Box>
+        </Box>
 
-          <Box className="border-t border-outline-200 bg-background-0 px-4 py-3">
+        <KeyboardStickyView style={{ width: '100%' }} offset={{ opened: bottomInset }}>
+          <Box
+            className="border-t border-outline-200 bg-background-0 px-4 py-3"
+            style={{ paddingBottom: bottomInset }}
+          >
             <HStack space="sm" className="items-center">
               <Input
                 variant="rounded"
@@ -205,8 +227,8 @@ export default function ChatScreen() {
               </Button>
             </HStack>
           </Box>
-        </Box>
-      </KeyboardAvoidingView>
+        </KeyboardStickyView>
+      </KeyboardControllerView>
     </SafeAreaView>
   );
 }
