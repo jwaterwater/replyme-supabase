@@ -57,15 +57,6 @@ export default function ChatScreen() {
   const inputBarHeight = 72;
   const { height: keyboardHeight } = useKeyboardAnimation();
 
-  const bottomSpacerStyle = useMemo(
-    () => ({
-      height: Animated.add(
-        Animated.multiply(keyboardHeight, -1),
-        bottomInset + inputBarHeight
-      ),
-    }),
-    [keyboardHeight, bottomInset, inputBarHeight]
-  );
 
   const handleSend = useCallback(() => {
     const content = draft.trim();
@@ -195,7 +186,6 @@ export default function ChatScreen() {
                   );
                 })}
               </VStack>
-              <Animated.View style={bottomSpacerStyle} />
             </ScrollView>
           </Box>
         </Box>

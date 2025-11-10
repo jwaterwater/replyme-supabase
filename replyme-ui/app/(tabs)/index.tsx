@@ -1,10 +1,12 @@
-import { Button } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
 import { Divider } from '@/components/ui/divider';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
+import { Button, ButtonText } from '@/components/ui/index';
 import ProfileCard from '@/components/tabs/index/ProfileCard';
 const SCREEN_WIDTH = Dimensions.get('window').width;
+import { useRouter } from 'expo-router';
+
 
 const DUMMY_DATA = [
   {
@@ -29,8 +31,18 @@ const DUMMY_DATA = [
 ];
 
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
+      <Button
+        action="primary"
+        style={{ margin: 15 }}
+        size="md"
+        onPress={() => router.push('/login')}
+      >
+        <ButtonText>去登录页</ButtonText>
+      </Button>
       <Carousel
         loop={false}
         width={SCREEN_WIDTH}
