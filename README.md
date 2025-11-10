@@ -1,3 +1,11 @@
-# Supabase Docker
+## 启动应用
 
-This is a minimal Docker Compose setup for self-hosting Supabase. Follow the steps [here](https://supabase.com/docs/guides/hosting/docker) to get started.
+#### 进入目录 
+```bash
+cd replyme-ui
+```
+
+#### 启动应用
+```bash
+npx expo start
+```
