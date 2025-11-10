@@ -29,6 +29,7 @@ import {
   ModalContent,
   ModalHeader,
 } from '@/components/ui/modal';
+import { supabase } from '@/lib/supabase';
 
 const HERO_SLIDES = [
   {
@@ -70,6 +71,10 @@ export default function LoginScreen() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [otpTimer, setOtpTimer] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const isPhone = loginMethod === 'phone';
   const hasIdentifier = identifier.trim().length > 0;
@@ -77,14 +82,64 @@ export default function LoginScreen() {
   const openLoginSheet = (method: 'email' | 'phone') => {
     setLoginMethod(method);
     setModalOpen(false);
+    setStatusMessage(null);
+    setErrorMessage(null);
     setTimeout(() => {
       setSheetOpen(true);
     }, 220);
   };
 
-  const handleContinue = () => {
-    console.log('Continue login', { loginMethod, identifier });
-    setSheetOpen(false);
+  const handleContinue = async () => {
+    const trimmedIdentifier = identifier.trim();
+    const trimmedToken = secret.trim();
+
+    if (!trimmedIdentifier || !trimmedToken) {
+      setErrorMessage('Please enter both your contact info and the code.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setStatusMessage(null);
+    setErrorMessage(null);
+
+    try {
+      if (isPhone) {
+        const { data, error } = await supabase.auth.verifyOtp({
+          type: 'sms',
+          phone: trimmedIdentifier,
+          token: trimmedToken,
+        });
+
+        if (error) throw error;
+        setStatusMessage('Code verified. Signing you in...');
+        if (data.session) {
+          setSheetOpen(false);
+        }
+      } else {
+        const { data, error } = await supabase.auth.verifyOtp({
+          type: 'email',
+          email: trimmedIdentifier,
+          token: trimmedToken,
+        });
+
+        if (error) throw error;
+        setStatusMessage('Code verified. Signing you in...');
+        if (data.session) {
+          setSheetOpen(false);
+        }
+      }
+
+      setSecret('');
+      setOtpTimer(0);
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : 'We could not verify the code. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAppleLogin = () => {
@@ -110,13 +165,50 @@ export default function LoginScreen() {
     return () => clearInterval(timer);
   }, [otpTimer]);
 
-  const handleSendCode = () => {
-    if (!identifier.trim()) {
-      console.log('Please enter contact info before requesting a code');
+  const handleSendCode = async () => {
+    const trimmedIdentifier = identifier.trim();
+
+    if (!trimmedIdentifier) {
+      setErrorMessage('Please add your email address or phone number first.');
       return;
     }
-    console.log('Send verification code', { loginMethod, identifier });
-    setOtpTimer(60);
+
+    setStatusMessage(null);
+    setErrorMessage(null);
+    setIsSendingCode(true);
+
+    try {
+      if (isPhone) {
+        const { error } = await supabase.auth.signInWithOtp({
+          phone: trimmedIdentifier,
+          options: {
+            shouldCreateUser: true,
+          },
+        });
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signInWithOtp({
+          email: trimmedIdentifier,
+          options: {
+            shouldCreateUser: true,
+          },
+        });
+
+        if (error) throw error;
+      }
+
+      setStatusMessage('Verification code sent. Check your inbox or SMS.');
+      setOtpTimer(60);
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : 'We could not send the code. Please try again in a moment.'
+      );
+    } finally {
+      setIsSendingCode(false);
+    }
   };
 
   return (
@@ -290,11 +382,17 @@ export default function LoginScreen() {
                       size="sm"
                       variant="outline"
                       action="primary"
-                      isDisabled={otpTimer > 0 || !hasIdentifier}
+                      isDisabled={
+                        otpTimer > 0 || !hasIdentifier || isSendingCode
+                      }
                       onPress={handleSendCode}
                     >
                       <ButtonText>
-                        {otpTimer > 0 ? `${otpTimer}s` : 'Send code'}
+                        {isSendingCode
+                          ? 'Sending...'
+                          : otpTimer > 0
+                            ? `${otpTimer}s`
+                            : 'Send code'}
                       </ButtonText>
                     </Button>
                   </HStack>
@@ -313,11 +411,22 @@ export default function LoginScreen() {
                   action="primary"
                   className="w-full"
                   onPress={handleContinue}
+                  isDisabled={isSubmitting}
                 >
                   <ButtonText className="w-full text-center">
-                    Continue
+                    {isSubmitting ? 'Signing in...' : 'Continue'}
                   </ButtonText>
                 </Button>
+                {errorMessage ? (
+                  <Text size="sm" className="text-error-500">
+                    {errorMessage}
+                  </Text>
+                ) : null}
+                {statusMessage ? (
+                  <Text size="sm" className="text-success-500">
+                    {statusMessage}
+                  </Text>
+                ) : null}
               </VStack>
 
               <VStack space="md">

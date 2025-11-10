@@ -6,9 +6,11 @@ import { Button, ButtonText } from '@/components/ui/index';
 import ProfileCard from '@/components/tabs/index/ProfileCard';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 
-const DUMMY_DATA = [
+/* const DUMMY_DATA = [
    {
     id: '3',
     imageUrl: 'https://qiniu.waoo.cc/saas/1762779038454_watermark.png',
@@ -33,11 +35,22 @@ const DUMMY_DATA = [
     bio: "Hello! My name is Sophia Lee, and I’m a 22-year-old student studying Environmental Science at the University of Washington. I’m passionate about sustainability and conservation",
     name: 'Sophia Lee'
   },
-  // ... 更多数据
-];
+]; */
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [personList,setPersonList] = useState([])
+
+  useEffect(() => {
+    initPersons()
+  },[])
+
+  async function initPersons  () {
+    let { data: persons,error,status } = await supabase.from('reply_person').select()
+    if(status == 200) {
+      setPersonList(persons)
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -46,7 +59,7 @@ export default function HomeScreen() {
         loop={false}
         width={SCREEN_WIDTH}
         height={SCREEN_WIDTH * 1.5}
-        data={DUMMY_DATA}
+        data={personList}
         renderItem={({ item }) => (
           <View style={styles.cardContainer}>
             <ProfileCard {...item} />
