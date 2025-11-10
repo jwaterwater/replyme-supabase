@@ -63,7 +63,7 @@ export default function HomeScreen() {
 
       <Button
         action="primary"
-        style={{ margin: 'auto'}}
+        style={{ margin: 'auto',marginTop: 0, marginBottom: 0}}
         size="xs"
         onPress={() => router.push('/login')}
       >
