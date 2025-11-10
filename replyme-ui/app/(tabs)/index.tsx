@@ -9,23 +9,29 @@ import { useRouter } from 'expo-router';
 
 
 const DUMMY_DATA = [
+   {
+    id: '3',
+    imageUrl: 'https://qiniu.waoo.cc/saas/1762779038454_watermark.png',
+    name: 'Emily Johnson',
+    bio: "Hi, I’m Emily Johnson, a 24-year-old graphic designer living in San Francisco.",
+  },
   {
     id: '1',
-    imageUrl: 'https://picsum.photos/300/300',
-    name: '张三',
-    bio: '热爱生活，喜欢探索新事物',
+    imageUrl: 'https://qiniu.waoo.cc/saas/1762778971816_watermark.png',
+    name: 'Jake Thompson',
+    bio: 'Hi, I’m Jake Thompson, a 26-year-old software engineer from Austin, Texas. ',
   },
   {
+    id: '4',
+    imageUrl: 'https://qiniu.waoo.cc/saas/1762779005725_watermark.png',
+    name: 'Sophia Lee',
+    bio: "Hello! My name is Sophia Lee, and I’m a 22-year-old student studying Environmental Science at the University of Washington. I’m passionate about sustainability and conservation",
+  },
+   {
     id: '2',
-    imageUrl: 'https://picsum.photos/300/300',
-    name: '里斯',
-    bio: '热爱生活，喜欢探索新事物',
-  },
-  {
-    id: '3',
-    imageUrl: 'https://picsum.photos/300/300',
-    name: '王五',
-    bio: '热爱生活，喜欢探索新事物',
+    imageUrl: 'https://qiniu.waoo.cc/saas/1762778992434_watermark.png',
+    bio: "Hello! My name is Sophia Lee, and I’m a 22-year-old student studying Environmental Science at the University of Washington. I’m passionate about sustainability and conservation",
+    name: 'Sophia Lee'
   },
   // ... 更多数据
 ];
@@ -35,14 +41,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Button
-        action="primary"
-        style={{ margin: 15 }}
-        size="md"
-        onPress={() => router.push('/login')}
-      >
-        <ButtonText>去登录页</ButtonText>
-      </Button>
+      
       <Carousel
         loop={false}
         width={SCREEN_WIDTH}
@@ -60,6 +59,16 @@ export default function HomeScreen() {
         }}
         style={styles.carousel}
       />
+
+
+      <Button
+        action="primary"
+        style={{ margin: 'auto'}}
+        size="xs"
+        onPress={() => router.push('/login')}
+      >
+        <ButtonText>去登录页</ButtonText>
+      </Button>
     </View>
   );
 }
