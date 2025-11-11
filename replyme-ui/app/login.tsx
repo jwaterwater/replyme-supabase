@@ -1,35 +1,28 @@
-import { useEffect, useState } from 'react';
+import { EmailLoginForm, PhoneLoginForm } from '@/components/login/OtpLoginForm';
 import {
-  Dimensions,
-  KeyboardAvoidingView,
-  Platform,
-  View,
-} from 'react-native';
-import Carousel from 'react-native-reanimated-carousel';
-import { SafeAreaView } from '@/components/ui/safe-area-view';
-import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
-import { Text } from '@/components/ui/text';
-import { HStack } from '@/components/ui/hstack';
-import { VStack } from '@/components/ui/vstack';
-import { Image } from '@/components/ui/image';
-import {
-  Actionsheet,
-  ActionsheetBackdrop,
-  ActionsheetContent,
-  ActionsheetDragIndicator,
-  ActionsheetDragIndicatorWrapper,
-  ActionsheetScrollView,
+    Actionsheet,
+    ActionsheetBackdrop,
+    ActionsheetContent,
+    ActionsheetDragIndicator,
+    ActionsheetDragIndicatorWrapper,
+    ActionsheetScrollView,
 } from '@/components/ui/actionsheet';
-import { Ionicons } from '@expo/vector-icons';
+import { Button, ButtonText } from '@/components/ui/button';
+import { HStack } from '@/components/ui/hstack';
+import { Image } from '@/components/ui/image';
+import { SafeAreaView } from '@/components/ui/safe-area-view';
+import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Dimensions, View } from 'react-native';
 import {
-  Modal,
-  ModalBackdrop,
-  ModalBody,
-  ModalContent,
-  ModalHeader,
-} from '@/components/ui/modal';
-import { supabase } from '@/lib/supabase';
+    KeyboardControllerView,
+    KeyboardStickyView,
+    useKeyboardState,
+} from 'react-native-keyboard-controller';
+import Carousel from 'react-native-reanimated-carousel';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const HERO_SLIDES = [
   {
@@ -65,81 +58,20 @@ const CAROUSEL_HEIGHT = Math.min(CAROUSEL_WIDTH * 1.05, 360);
 
 export default function LoginScreen() {
   const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
-  const [identifier, setIdentifier] = useState('');
-  const [secret, setSecret] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
-  const [otpTimer, setOtpTimer] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSendingCode, setIsSendingCode] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
+  const keyboardHeight = useKeyboardState(state => state.height);
+  const isKeyboardVisible = useKeyboardState(state => state.isVisible);
+  const router = useRouter()
 
   const isPhone = loginMethod === 'phone';
-  const hasIdentifier = identifier.trim().length > 0;
 
   const openLoginSheet = (method: 'email' | 'phone') => {
     setLoginMethod(method);
-    setModalOpen(false);
-    setStatusMessage(null);
-    setErrorMessage(null);
     setTimeout(() => {
       setSheetOpen(true);
     }, 220);
-  };
-
-  const handleContinue = async () => {
-    const trimmedIdentifier = identifier.trim();
-    const trimmedToken = secret.trim();
-
-    if (!trimmedIdentifier || !trimmedToken) {
-      setErrorMessage('Please enter both your contact info and the code.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setStatusMessage(null);
-    setErrorMessage(null);
-
-    try {
-      if (isPhone) {
-        const { data, error } = await supabase.auth.verifyOtp({
-          type: 'sms',
-          phone: trimmedIdentifier,
-          token: trimmedToken,
-        });
-
-        if (error) throw error;
-        setStatusMessage('Code verified. Signing you in...');
-        if (data.session) {
-          setSheetOpen(false);
-        }
-      } else {
-        const { data, error } = await supabase.auth.verifyOtp({
-          type: 'email',
-          email: trimmedIdentifier,
-          token: trimmedToken,
-        });
-
-        if (error) throw error;
-        setStatusMessage('Code verified. Signing you in...');
-        if (data.session) {
-          setSheetOpen(false);
-        }
-      }
-
-      setSecret('');
-      setOtpTimer(0);
-    } catch (err) {
-      setErrorMessage(
-        err instanceof Error
-          ? err.message
-          : 'We could not verify the code. Please try again.'
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleAppleLogin = () => {
@@ -150,73 +82,17 @@ export default function LoginScreen() {
     console.log('Forgot credentials tapped');
   };
 
-  useEffect(() => {
-    if (otpTimer <= 0) return;
-    const timer = setInterval(() => {
-      setOtpTimer(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+  const closeSheet = () => () => {
+    setSheetOpen(false)
+    router.replace('/')
+  }
 
-    return () => clearInterval(timer);
-  }, [otpTimer]);
-
-  const handleSendCode = async () => {
-    const trimmedIdentifier = identifier.trim();
-
-    if (!trimmedIdentifier) {
-      setErrorMessage('Please add your email address or phone number first.');
-      return;
-    }
-
-    setStatusMessage(null);
-    setErrorMessage(null);
-    setIsSendingCode(true);
-
-    try {
-      if (isPhone) {
-        const { error } = await supabase.auth.signInWithOtp({
-          phone: trimmedIdentifier,
-          options: {
-            shouldCreateUser: true,
-          },
-        });
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signInWithOtp({
-          email: trimmedIdentifier,
-          options: {
-            shouldCreateUser: true,
-          },
-        });
-
-        if (error) throw error;
-      }
-
-      setStatusMessage('Verification code sent. Check your inbox or SMS.');
-      setOtpTimer(60);
-    } catch (err) {
-      setErrorMessage(
-        err instanceof Error
-          ? err.message
-          : 'We could not send the code. Please try again in a moment.'
-      );
-    } finally {
-      setIsSendingCode(false);
-    }
-  };
+  const bottomInset = Math.max(insets.bottom, 24);
+  const scrollBottomPadding = bottomInset + (isKeyboardVisible ? keyboardHeight : 0);
 
   return (
-    <SafeAreaView className="flex-1">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1"
-      >
+    <KeyboardControllerView style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1">
         <View className="flex-1 justify-between">
           <View className="px-6 pt-12">
             <VStack space="sm">
@@ -272,9 +148,7 @@ export default function LoginScreen() {
                 <View
                   key={slide.id}
                   className={`h-1.5 flex-1 rounded-full ${
-                    index === activeSlide
-                      ? 'bg-primary-500'
-                      : 'bg-outline-200'
+                    index === activeSlide ? 'bg-primary-500' : 'bg-outline-200'
                   }`}
                 />
               ))}
@@ -297,174 +171,99 @@ export default function LoginScreen() {
             </Text>
           </View>
         </View>
-      </KeyboardAvoidingView>
 
-      
+        <Actionsheet isOpen={sheetOpen} onClose={closeSheet}>
+          <ActionsheetBackdrop onPress={closeSheet} />
+          <ActionsheetContent>
+            <ActionsheetDragIndicatorWrapper>
+              <ActionsheetDragIndicator />
+            </ActionsheetDragIndicatorWrapper>
 
-      <Actionsheet
-        isOpen={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-      >
-        <ActionsheetBackdrop onPress={() => setSheetOpen(false)} />
-        <ActionsheetContent>
-          <ActionsheetDragIndicatorWrapper>
-            <ActionsheetDragIndicator />
-          </ActionsheetDragIndicatorWrapper>
-
-          <ActionsheetScrollView>
-            <VStack space="lg" className="pt-6 pb-4">
-              <VStack space="xs" className="px-1">
-                <Text
-                  size="lg"
-                  className="font-semibold text-typography-900 dark:text-typography-0"
-                >
-                  Sign in to continue
-                </Text>
-                <Text className="text-typography-500 dark:text-typography-300">
-                  Access personalised lessons, streaks, and saved progress.
-                </Text>
-              </VStack>
-
-              <VStack space="md">
-                <HStack space="sm">
-                  <Button
-                    size="sm"
-                    action="primary"
-                    variant={isPhone ? 'outline' : 'solid'}
-                    className="flex-1"
-                    onPress={() => setLoginMethod('email')}
+            <ActionsheetScrollView
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: scrollBottomPadding }}
+            >
+              <VStack space="lg" className="pt-6 pb-4">
+                <VStack space="xs" className="px-1">
+                  <Text
+                    size="lg"
+                    className="font-semibold text-typography-900 dark:text-typography-0"
                   >
-                    <ButtonText className="w-full text-center">
-                      Email
-                    </ButtonText>
-                  </Button>
-                  <Button
-                    size="sm"
-                    action="primary"
-                    variant={isPhone ? 'solid' : 'outline'}
-                    className="flex-1"
-                    onPress={() => setLoginMethod('phone')}
-                  >
-                    <ButtonText className="w-full text-center">
-                      Phone
-                    </ButtonText>
-                  </Button>
-                </HStack>
-
-                <VStack space="sm">
-                  <Input variant="outline" size="lg">
-                    <InputField
-                      value={identifier}
-                      onChangeText={setIdentifier}
-                      placeholder={
-                        isPhone ? 'Phone number' : 'Email address'
-                      }
-                      keyboardType={isPhone ? 'phone-pad' : 'email-address'}
-                      autoComplete={isPhone ? 'tel' : 'email'}
-                      textContentType={
-                        isPhone ? 'telephoneNumber' : 'emailAddress'
-                      }
-                      autoCapitalize="none"
-                    />
-                  </Input>
-
-                  <HStack space="sm" className="items-center">
-                    <Input variant="outline" size="lg" className="flex-1">
-                      <InputField
-                        value={secret}
-                        onChangeText={setSecret}
-                        placeholder="Verification code"
-                        keyboardType="number-pad"
-                        textContentType="oneTimeCode"
-                      />
-                    </Input>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      action="primary"
-                      isDisabled={
-                        otpTimer > 0 || !hasIdentifier || isSendingCode
-                      }
-                      onPress={handleSendCode}
-                    >
-                      <ButtonText>
-                        {isSendingCode
-                          ? 'Sending...'
-                          : otpTimer > 0
-                            ? `${otpTimer}s`
-                            : 'Send code'}
-                      </ButtonText>
-                    </Button>
-                  </HStack>
+                    Sign in to continue
+                  </Text>
+                  <Text className="text-typography-500 dark:text-typography-300">
+                    Access personalised lessons, streaks, and saved progress.
+                  </Text>
                 </VStack>
 
-                <Text
-                  size="sm"
-                  className="self-end text-primary-500 dark:text-primary-400"
-                  onPress={handleForgot}
-                >
-                  Forgot password?
-                </Text>
+                <VStack space="md">
+                  <HStack space="sm">
+                    <Button
+                      size="sm"
+                      action="primary"
+                      variant={isPhone ? 'outline' : 'solid'}
+                      className="flex-1"
+                      onPress={() => setLoginMethod('email')}
+                    >
+                      <ButtonText className="w-full text-center">Email</ButtonText>
+                    </Button>
+                    <Button
+                      size="sm"
+                      action="primary"
+                      variant={isPhone ? 'solid' : 'outline'}
+                      className="flex-1"
+                      onPress={() => setLoginMethod('phone')}
+                    >
+                      <ButtonText className="w-full text-center">Phone</ButtonText>
+                    </Button>
+                  </HStack>
 
-                <Button
-                  size="md"
-                  action="primary"
-                  className="w-full"
-                  onPress={handleContinue}
-                  isDisabled={isSubmitting}
-                >
-                  <ButtonText className="w-full text-center">
-                    {isSubmitting ? 'Signing in...' : 'Continue'}
-                  </ButtonText>
-                </Button>
-                {errorMessage ? (
-                  <Text size="sm" className="text-error-500">
-                    {errorMessage}
+                  {isPhone ? (
+                    <PhoneLoginForm onSuccess={closeSheet} onForgot={handleForgot} />
+                  ) : (
+                    <EmailLoginForm onSuccess={closeSheet} onForgot={handleForgot} />
+                  )}
+                </VStack>
+
+                <VStack space="md">
+                  <Text className="text-center text-typography-500 dark:text-typography-300">
+                    or continue with
                   </Text>
-                ) : null}
-                {statusMessage ? (
-                  <Text size="sm" className="text-success-500">
-                    {statusMessage}
-                  </Text>
-                ) : null}
-              </VStack>
-
-              <VStack space="md">
-                <Text className="text-center text-typography-500 dark:text-typography-300">
-                  or continue with
-                </Text>
-                <Button
-                  size="md"
-                  variant="outline"
-                  action="primary"
-                  className="w-full"
-                  onPress={handleAppleLogin}
-                >
-                  <ButtonText className="flex-1 text-center">
-                    Continue with Apple
-                  </ButtonText>
-                </Button>
-              </VStack>
-
-              <VStack space="xs">
-                <Text className="text-center text-typography-500 dark:text-typography-300">
-                  By continuing you agree to our Terms of Service and Privacy
-                  Policy.
-                </Text>
-                <Text className="text-center text-typography-500 dark:text-typography-300">
-                  New here?{' '}
-                  <Text
-                    className="text-primary-500 dark:text-primary-400"
-                    onPress={() => console.log('Navigate to sign up')}
+                  <Button
+                    size="md"
+                    variant="outline"
+                    action="primary"
+                    className="w-full"
+                    onPress={handleAppleLogin}
                   >
-                    Create an account
+                    <ButtonText className="flex-1 text-center">
+                      Continue with Apple
+                    </ButtonText>
+                  </Button>
+                </VStack>
+
+                <VStack space="xs">
+                  <Text className="text-center text-typography-500 dark:text-typography-300">
+                    By continuing you agree to our Terms of Service and Privacy Policy.
                   </Text>
-                </Text>
+                  <Text className="text-center text-typography-500 dark:text-typography-300">
+                    New here?{' '}
+                    <Text
+                      className="text-primary-500 dark:text-primary-400"
+                      onPress={() => console.log('Navigate to sign up')}
+                    >
+                      Create an account
+                    </Text>
+                  </Text>
+                </VStack>
               </VStack>
-            </VStack>
-          </ActionsheetScrollView>
-        </ActionsheetContent>
-      </Actionsheet>
-    </SafeAreaView>
+            </ActionsheetScrollView>
+            <KeyboardStickyView offset={{ opened: bottomInset }}>
+              <View style={{ height: bottomInset }} />
+            </KeyboardStickyView>
+          </ActionsheetContent>
+        </Actionsheet>
+      </SafeAreaView>
+    </KeyboardControllerView>
   );
 }
