@@ -52,6 +52,7 @@ export default function HomeScreen() {
       />
 
 
+{false && 
       <Button
         action="primary"
         style={{ margin: 'auto',marginTop: 0, marginBottom: 0}}
@@ -60,6 +61,7 @@ export default function HomeScreen() {
       >
         <ButtonText>去登录页</ButtonText>
       </Button>
+      }
     </View>
   );
 }

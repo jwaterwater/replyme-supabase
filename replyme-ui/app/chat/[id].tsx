@@ -9,10 +9,11 @@ import { Box } from '@/components/ui/box';
 import { Button, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Input, InputField } from '@/components/ui/input';
-import { SafeAreaView } from '@/components/ui/safe-area-view';
 import { ScrollView } from '@/components/ui/scroll-view';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
+import { useChatStore } from '@/stores/chat';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 type Message = {
   id: string;
   sender: 'me' | 'other';
@@ -23,33 +24,25 @@ type Message = {
 };
 
 export default function ChatScreen() {
+  const navigation = useNavigation();
+  const { id } = useLocalSearchParams();
+  const { fetchFriendsInfo,friendsInfo,personInfo,sendMessage,messageList,currentMessage } = useChatStore();
+  useEffect( () => {
+    let userName = 'test'
+    fetchFriendsInfo(parseInt(id as string))
+  },[id])
+
+ 
+
+  useEffect( () => {
+    navigation.setOptions({
+      title: personInfo.name
+    })
+  },[personInfo])
+
+
   const [draft, setDraft] = useState('');
-  const [messages, setMessages] = useState<Message[]>(() => [
-    {
-      id: '1',
-      sender: 'other',
-      senderLabel: 'ReplyMe 助手',
-      initials: 'RM',
-      text: '嗨，欢迎来到 ReplyMe～如果有任何问题，随时告诉我。',
-      time: '09:15',
-    },
-    {
-      id: '2',
-      sender: 'me',
-      senderLabel: '我',
-      initials: 'ME',
-      text: '你好！请帮我看看今天的待办里有没有紧急任务。',
-      time: '09:16',
-    },
-    {
-      id: '3',
-      sender: 'other',
-      senderLabel: 'ReplyMe 助手',
-      initials: 'RM',
-      text: '已经帮你标记了两个待办为高优先级，还需要我设置提醒吗？',
-      time: '09:18',
-    },
-  ]);
+
 
   const scrollRef = useRef<RNScrollView>(null);
   const insets = useSafeAreaInsets();
@@ -57,31 +50,14 @@ export default function ChatScreen() {
   const inputBarHeight = 72;
   const { height: keyboardHeight } = useKeyboardAnimation();
 
+  
 
   const handleSend = useCallback(() => {
     const content = draft.trim();
+    setDraft('')
+    sendMessage(content)
+    return
 
-    if (!content) {
-      return;
-    }
-
-    const formattedTime = new Date().toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `${Date.now()}`,
-        sender: 'me',
-        senderLabel: '我',
-        initials: 'ME',
-        text: content,
-        time: formattedTime,
-      },
-    ]);
-    setDraft('');
   }, [draft]);
 
   const handleKeyboardShow = useCallback(() => {
@@ -96,7 +72,7 @@ export default function ChatScreen() {
     return () => {
       clearTimeout(timer);
     };
-  }, [messages]);
+  }, [messageList]);
 
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', handleKeyboardShow);
@@ -107,44 +83,23 @@ export default function ChatScreen() {
   }, [handleKeyboardShow]);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <Box style={{ flex: 1 }}>
       <KeyboardControllerView style={{ flex: 1 }}>
-        <Box className="flex-1 bg-background-0">
-          <Box className="border-b border-outline-200 bg-background-0 px-5 py-4">
-            <HStack className="items-center justify-between">
-              <HStack space="sm" className="items-center">
-                <Avatar size="sm">
-                  <AvatarFallbackText>RM</AvatarFallbackText>
-                </Avatar>
-                <VStack space="xs">
-                  <Text bold size="lg" className="text-typography-900">
-                    ReplyMe 助手
-                  </Text>
-                  <Text size="xs" className="text-typography-500">
-                    在线 · 响应迅速
-                  </Text>
-                </VStack>
-              </HStack>
-              <Button variant="link" action="primary" size="sm">
-                <ButtonText>查看详情</ButtonText>
-              </Button>
-            </HStack>
-          </Box>
-
+        <Box className="flex-1">
           <Box className="flex-1">
             <ScrollView
               ref={scrollRef}
               style={{ flex: 1 }}
               contentContainerStyle={{
                 paddingHorizontal: 20,
-                paddingTop: 24,
+                paddingTop: 10,
               }}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="interactive"
             >
               <VStack space="lg">
-                {messages.map((message) => {
-                  const isMine = message.sender === 'me';
+                {messageList.map((message,index) => {
+                  const isMine = message.from === 'user';
                   const bubbleClass = isMine
                     ? 'bg-primary-500 rounded-3xl rounded-br-md'
                     : 'bg-secondary-700 rounded-3xl rounded-bl-md';
@@ -154,13 +109,13 @@ export default function ChatScreen() {
 
                   return (
                     <HStack
-                      key={message.id}
+                      key={index}
                       space="sm"
                       className={`w-full items-end ${isMine ? 'justify-end' : 'justify-start'}`}
                     >
                       {!isMine && (
                         <Avatar size="xs">
-                          <AvatarFallbackText>{message.initials}</AvatarFallbackText>
+                          <AvatarFallbackText>{message.from}</AvatarFallbackText>
                         </Avatar>
                       )}
 
@@ -170,21 +125,44 @@ export default function ChatScreen() {
                       >
                         {!isMine && (
                           <Text size="xs" className="text-typography-500">
-                            {message.senderLabel}
+                            {message.from}
                           </Text>
                         )}
-                        <Box className={`px-4 py-3 ${bubbleClass}`}>
+                        <Box className={`px-4 py-3 bg-secondary-700 rounded-3xl rounded-bl-md`}>
                           <Text className={`leading-5 ${textClass}`}>
-                            {message.text}
+                            {message.content}
                           </Text>
                         </Box>
                         <Text size="2xs" className="text-typography-400">
-                          {message.time}
+                          {message.from}
                         </Text>
                       </VStack>
                     </HStack>
                   );
                 })}
+
+
+                {currentMessage && <HStack
+                      space="sm"
+                      className={`w-full items-end justify-start`}
+                    >
+                    
+                      <VStack
+                        space="xs"
+                        className={`max-w-[80%] items-start`}
+                      >
+                        <Text size="xs" className="text-typography-500">
+                           AI
+                        </Text>
+                        <Box className={`px-4 py-3 text-typography-500`}>
+                          <Text className={`leading-5 text-typography-900`}>
+                            {currentMessage}
+                          </Text>
+                        </Box>
+                        <Text size="2xs" className="text-typography-400">
+                        </Text>
+                      </VStack>
+                  </HStack>}
               </VStack>
             </ScrollView>
           </Box>
@@ -219,6 +197,6 @@ export default function ChatScreen() {
           </Box>
         </KeyboardStickyView>
       </KeyboardControllerView>
-    </SafeAreaView>
+    </Box>
   );
 }

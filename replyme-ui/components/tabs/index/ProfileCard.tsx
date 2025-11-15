@@ -1,7 +1,7 @@
-import { useCallback } from 'react';
 import { Button, ButtonText } from '@/components/ui/index';
-import { Image, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useCallback } from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 type ProfileCardProps = {
   avatar: string;
@@ -12,7 +12,7 @@ type ProfileCardProps = {
 export default function ProfileCard({ avatar, name, description }: ProfileCardProps) {
   const router = useRouter();
   const handleChatPress = useCallback(() => {
-    router.push('/chat');
+    router.push('/chat/2');
   }, [router]);
 
   return (

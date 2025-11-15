@@ -17,7 +17,7 @@
     <script type="module">
         const { createApp } = Vue;
         const { createClient } = supabase;
-        const supabaseUrl = 'http://localhost:8000';
+        const supabaseUrl = 'https://replyme.haokui.top';
         const app = createClient(supabaseUrl, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzYwMTEyMDAwLCJleHAiOjE5MTc4Nzg0MDB9.j8QMQ2tVDvWpDPDH9J_VFL2oA8PP8rszMhmWg7aN12E'); 
 
         window.app = app;
@@ -46,7 +46,7 @@
                     console.log('Sign-up response:', { data, error });
                 },
                 async testFunc () {
-                    const { data, error } = await app.functions.invoke('hello', {
+                    const { data, error } = await app.functions.invoke('chat/getFriend', {
                         body: { name: 'JavaScript' },
                     })
                     console.log(data) 
