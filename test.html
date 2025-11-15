@@ -7,6 +7,8 @@
     <body id="app">
         <button @click="register">注册</button>
         <button @click="login">登录</button>
+        <button @click="testFunc">testFunc</button>
+
         <h1>Hello, World!</h1>
         <p>This is a test HTML file.</p>
 
@@ -42,6 +44,12 @@
                     //保存登录jwt
                     localStorage.setItem('supabase.auth.token', data.session.access_token);
                     console.log('Sign-up response:', { data, error });
+                },
+                async testFunc () {
+                    const { data, error } = await app.functions.invoke('hello', {
+                        body: { name: 'JavaScript' },
+                    })
+                    console.log(data) 
                 },
                 async uploadImage() {
                     // 获取用户

@@ -1,18 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Keyboard } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ScrollView as RNScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Keyboard } from 'react-native';
 import { KeyboardControllerView, KeyboardStickyView, useKeyboardAnimation } from 'react-native-keyboard-controller';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { SafeAreaView } from '@/components/ui/safe-area-view';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
-import { ScrollView } from '@/components/ui/scroll-view';
 import { Avatar, AvatarFallbackText } from '@/components/ui/avatar';
+import { Box } from '@/components/ui/box';
+import { Button, ButtonText } from '@/components/ui/button';
+import { HStack } from '@/components/ui/hstack';
+import { Input, InputField } from '@/components/ui/input';
+import { SafeAreaView } from '@/components/ui/safe-area-view';
+import { ScrollView } from '@/components/ui/scroll-view';
+import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
 type Message = {
   id: string;
   sender: 'me' | 'other';
@@ -57,15 +57,6 @@ export default function ChatScreen() {
   const inputBarHeight = 72;
   const { height: keyboardHeight } = useKeyboardAnimation();
 
-  const bottomSpacerStyle = useMemo(
-    () => ({
-      height: Animated.add(
-        Animated.multiply(keyboardHeight, -1),
-        bottomInset + inputBarHeight
-      ),
-    }),
-    [keyboardHeight, bottomInset, inputBarHeight]
-  );
 
   const handleSend = useCallback(() => {
     const content = draft.trim();
@@ -195,7 +186,6 @@ export default function ChatScreen() {
                   );
                 })}
               </VStack>
-              <Animated.View style={bottomSpacerStyle} />
             </ScrollView>
           </Box>
         </Box>
