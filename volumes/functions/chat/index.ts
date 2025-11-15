@@ -3,13 +3,16 @@
 // This enables autocomplete, go to definition, etc.
 
 //import { serve } from "https://deno.land/std@0.177.1/http/server.ts"
-
-Deno.serve(async () => {
-  return new Response(
-    `"Hello from Edge Functions!"`,
-    { headers: { "Content-Type": "application/json" } },
-  )
-})
+import getFriend from './routes/getFriend.ts'
+Deno.serve(async (req: Request) => {
+  const path = new URL(req.url).pathname.split("/").pop();
+  switch (path) {
+    case "getFriend":
+      return getFriend(req);
+    default:
+      return new Response("Not found", { status: 404 });
+  }
+});
 
 // To invoke:
 // curl 'http://localhost:<KONG_HTTP_PORT>/functions/v1/hello' \

@@ -12,7 +12,9 @@ services:
   studio:
     container_name: supabase-studio
     image: supabase/studio:2025.10.01-sha-8460121
-    restart: unless-stopped
+    mem_limit: 512m  # 限制内存
+    cpus: '0.5'  # 限制 CPU 使用
+    restart: no
     healthcheck:
       test:
         [
@@ -56,7 +58,9 @@ services:
   kong:
     container_name: supabase-kong
     image: kong:2.8.1
-    restart: unless-stopped
+    mem_limit: 512m  # 限制内存
+    cpus: '0.5'  # 限制 CPU 使用
+    restart: no
     ports:
       - ${KONG_HTTP_PORT}:8000/tcp
       - ${KONG_HTTPS_PORT}:8443/tcp
@@ -84,7 +88,9 @@ services:
   auth:
     container_name: supabase-auth
     image: supabase/gotrue:v2.180.0
-    restart: unless-stopped
+    mem_limit: 512m  # 限制内存
+    cpus: '0.5'  # 限制 CPU 使用
+    restart: no
     healthcheck:
       test:
         [
@@ -167,7 +173,9 @@ services:
   rest:
     container_name: supabase-rest
     image: postgrest/postgrest:v13.0.7
-    restart: unless-stopped
+    mem_limit: 512m  # 限制内存
+    cpus: '0.5'  # 限制 CPU 使用
+    restart: no
     depends_on:
       db:
         # Disable this if you are using an external Postgres database
@@ -191,7 +199,7 @@ services:
   #   # This container name looks inconsistent but is correct because realtime constructs tenant id by parsing the subdomain
   #   container_name: realtime-dev.supabase-realtime
   #   image: supabase/realtime:v2.51.11
-  #   restart: unless-stopped
+  #   restart: no
   #   depends_on:
   #     db:
   #       # Disable this if you are using an external Postgres database
@@ -236,7 +244,9 @@ services:
   storage:
     container_name: supabase-storage
     image: supabase/storage-api:v1.28.0
-    restart: unless-stopped
+    mem_limit: 512m  # 限制内存
+    cpus: '0.5'  # 限制 CPU 使用
+    restart: no
     volumes:
       - ./volumes/storage:/var/lib/storage:z
     healthcheck:
@@ -286,17 +296,20 @@ services:
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       AWS_DEFAULT_REGION: ${S3_REGION}
       FILE_STORAGE_BACKEND_PATH: /var/lib/storage
-      TENANT_ID: replyme
+      TENANT_ID: stub
       # TODO: https://github.com/supabase/storage-api/issues/55
       REGION: ${S3_REGION}
-      ENABLE_IMAGE_TRANSFORMATION: "true"
+      ENABLE_IMAGE_TRANSFORMATION: "false"
+      LOG_LEVEL: warn
 
   
 
   meta:
     container_name: supabase-meta
     image: supabase/postgres-meta:v0.91.6
-    restart: unless-stopped
+    mem_limit: 512m  # 限制内存
+    cpus: '0.5'  # 限制 CPU 使用
+    restart: no
     depends_on:
       db:
         # Disable this if you are using an external Postgres database
@@ -315,7 +328,7 @@ services:
   functions:
     container_name: supabase-edge-functions
     image: supabase/edge-runtime:v1.69.6
-    restart: unless-stopped
+    restart: no
     volumes:
       - ./volumes/functions:/home/deno/functions:Z
     #depends_on:
@@ -339,7 +352,7 @@ services:
   # analytics:
   #   container_name: supabase-analytics
   #   image: supabase/logflare:1.22.4
-  #   restart: unless-stopped
+  #   restart: no
   #   ports:
   #     - 4000:4000
   #   # Uncomment to use Big Query backend for analytics
@@ -388,7 +401,9 @@ services:
   db:
     container_name: supabase-db
     image: supabase/postgres:15.8.1.085
-    restart: unless-stopped
+    mem_limit: 512m  # 限制内存
+    cpus: '0.5'  # 限制 CPU 使用
+    restart: no
     volumes:
       - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
       # Must be superuser to create event trigger
@@ -420,9 +435,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    # depends_on:
-    #   vector:
-    #     condition: service_healthy
+    depends_on:
+      vector:
+        condition: service_healthy
     environment:
       POSTGRES_HOST: /var/run/postgresql
       PGPORT: ${POSTGRES_PORT}
@@ -442,41 +457,43 @@ services:
         "log_min_messages=fatal" # prevents Realtime polling queries from appearing in logs
       ]
 
-  # vector:
-  #   container_name: supabase-vector
-  #   image: timberio/vector:0.28.1-alpine
-  #   restart: unless-stopped
-  #   volumes:
-  #     - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro,z
-  #     - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro,z
-  #   healthcheck:
-  #     test:
-  #       [
-  #         "CMD",
-  #         "wget",
-  #         "--no-verbose",
-  #         "--tries=1",
-  #         "--spider",
-  #         "http://vector:9001/health"
-  #       ]
-  #     timeout: 5s
-  #     interval: 5s
-  #     retries: 3
-  #   environment:
-  #     LOGFLARE_PUBLIC_ACCESS_TOKEN: ${LOGFLARE_PUBLIC_ACCESS_TOKEN}
-  #   command:
-  #     [
-  #       "--config",
-  #       "/etc/vector/vector.yml"
-  #     ]
-  #   security_opt:
-  #     - "label=disable"
+  vector:
+    container_name: supabase-vector
+    image: timberio/vector:0.28.1-alpine
+    restart: no
+    volumes:
+      - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro,z
+      - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro,z
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://vector:9001/health"
+        ]
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    environment:
+      LOGFLARE_PUBLIC_ACCESS_TOKEN: ${LOGFLARE_PUBLIC_ACCESS_TOKEN}
+    command:
+      [
+        "--config",
+        "/etc/vector/vector.yml"
+      ]
+    security_opt:
+      - "label=disable"
 
   # Update the DATABASE_URL if you are using an external Postgres database
   supavisor:
     container_name: supabase-pooler
     image: supabase/supavisor:2.7.0
-    restart: unless-stopped
+    mem_limit: 512m  # 限制内存
+    cpus: '0.5'  # 限制 CPU 使用
+    restart: no
     ports:
       - ${POSTGRES_PORT}:5432
       - ${POOLER_PROXY_PORT_TRANSACTION}:6543
