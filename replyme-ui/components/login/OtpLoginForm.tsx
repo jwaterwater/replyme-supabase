@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useEffect, useMemo, useState } from 'react';
 
 type LoginFormProps = {
-  onSuccess?: () => void;
+  onSuccess?: (login:boolean) => void;
   onForgot?: () => void;
 };
 
@@ -176,7 +176,7 @@ const OtpLoginForm = ({ mode, onSuccess, onForgot }: OtpLoginFormProps) => {
       setStatusMessage('Code verified. Signing you in...');
 
       if (result.session) {
-        onSuccess?.();
+        onSuccess?.(true);
       }
 
       setSecret('');

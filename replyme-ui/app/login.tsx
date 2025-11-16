@@ -1,11 +1,11 @@
 import { EmailLoginForm, PhoneLoginForm } from '@/components/login/OtpLoginForm';
 import {
-    Actionsheet,
-    ActionsheetBackdrop,
-    ActionsheetContent,
-    ActionsheetDragIndicator,
-    ActionsheetDragIndicatorWrapper,
-    ActionsheetScrollView,
+  Actionsheet,
+  ActionsheetBackdrop,
+  ActionsheetContent,
+  ActionsheetDragIndicator,
+  ActionsheetDragIndicatorWrapper,
+  ActionsheetScrollView,
 } from '@/components/ui/actionsheet';
 import { Button, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
@@ -17,9 +17,9 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Dimensions, View } from 'react-native';
 import {
-    KeyboardControllerView,
-    KeyboardStickyView,
-    useKeyboardState,
+  KeyboardControllerView,
+  KeyboardStickyView,
+  useKeyboardState,
 } from 'react-native-keyboard-controller';
 import Carousel from 'react-native-reanimated-carousel';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -82,9 +82,12 @@ export default function LoginScreen() {
     console.log('Forgot credentials tapped');
   };
 
-  const closeSheet = () => () => {
+  const closeSheet = (login=false) => {
+    console.log('closeSheet')
     setSheetOpen(false)
-    router.replace('/')
+    if(login) {
+      router.replace('/')
+    }
   }
 
   const bottomInset = Math.max(insets.bottom, 24);
@@ -173,7 +176,7 @@ export default function LoginScreen() {
         </View>
 
         <Actionsheet isOpen={sheetOpen} onClose={closeSheet}>
-          <ActionsheetBackdrop onPress={closeSheet} />
+          <ActionsheetBackdrop />
           <ActionsheetContent>
             <ActionsheetDragIndicatorWrapper>
               <ActionsheetDragIndicator />
